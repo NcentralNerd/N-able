@@ -1,0 +1,15 @@
+Function UninstallNable {
+cmd.exe /c 'wmic product where name="Windows Agent" call uninstall /nointeractive'
+#(Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE Name like 'Windows Agent'").uninstall()
+}
+Function InstallNable {
+Remove-Item -path 'c:\windows\temp\WindowsAgentSetup.exe'
+Invoke-WebRequest -Uri "https://nerdstraining.n-able.com/download/2021.1.7.840/winnt/N-central/WindowsAgentSetup.exe" -OutFile "C:\windows\temp\WindowsAgentSetup.exe"
+Start-Sleep -Seconds 180
+cmd.exe /c 'c:\windows\temp\WindowsAgentSetup.exe /s /v" /qn CUSTOMERID=103 CUSTOMERNAME=\"1NewActivations\" REGISTRATION_TOKEN=7c02295e-3ffc-c0e0-bea2-bbef7e8f14c4 SERVERPROTOCOL=HTTPS SERVERADDRESS=nerdstraining.n-able.com SERVERPORT=443 "'
+}
+if ((get-service "Windows Agent Service" -ErrorAction SilentlyContinue)) {write-output "Uninstalling N-Able"; UninstallNable}
+Start-Sleep -Seconds 300
+if (!(get-service "Windows Agent Service" -ErrorAction SilentlyContinue)) {write-output "Installing Nable"; InstallNable}
+Start-Sleep -Seconds 300
+if ((Get-Service "Windows Agent Service" -ErrorAction SilentlyContinue)) {write-output "N-Able Successfully Installed"} else {write-output "Something went Wrong"}
